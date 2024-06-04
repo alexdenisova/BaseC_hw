@@ -6,7 +6,7 @@
 #include <temp_api.h>
 #include <sensordata.h>
 
-const int MAX_ROWS = 1000;
+const int MAX_ROWS = 520000;
 const int MAX_LINE_LENGTH = 1000;
 
 // Parses arguments to command
