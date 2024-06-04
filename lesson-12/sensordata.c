@@ -8,19 +8,27 @@
 
 long get_num(char **token, bool *ok)
 {
-  char *ptr = NULL;
-  errno = 0;
-  long i = strtol(*token, &ptr, 10);
-  if (errno == 0 && token && !*ptr || *ptr == '\n' || *ptr == '\r' || *ptr == '\0')
+  if (**token != '\n' && **token != '\r' && **token != '\0')
   {
-    *ok = true;
+    char *ptr = NULL;
+    errno = 0;
+    long i = strtol(*token, &ptr, 10);
+    if (errno == 0 && **token != '\n' && !*ptr || *ptr == '\n' || *ptr == '\r' || *ptr == '\0')
+    {
+      *ok = true;
+    }
+    else
+    {
+      *ok = false;
+    }
+    *token = strtok(NULL, ";");
+    return i;
   }
   else
   {
     *ok = false;
+    return -1;
   }
-  *token = strtok(NULL, ";");
-  return i;
 }
 
 // Parse SensorData struct from CSV line
@@ -29,27 +37,52 @@ SensorData from_csv_line(char *line, bool *ok)
   SensorData data;
   char *token = strtok(line, ";");
   data.year = get_num(&token, ok);
+  if (!*ok)
+  {
+    return data;
+  }
   data.month = get_num(&token, ok);
+  if (!*ok)
+  {
+    return data;
+  }
   data.day = get_num(&token, ok);
+  if (!*ok)
+  {
+    return data;
+  }
   data.hour = get_num(&token, ok);
+  if (!*ok)
+  {
+    return data;
+  }
   data.minute = get_num(&token, ok);
+  if (!*ok)
+  {
+    return data;
+  }
   data.temperature = get_num(&token, ok);
   return data;
 }
 
 // Create array from CSV file. Returns array length
-uint32_t from_csv(SensorData arr[], FILE *input, uint64_t max_line_size)
+uint64_t from_csv(SensorData arr[], uint64_t max_arr_size, FILE *input, uint64_t max_line_size)
 {
   bool ok = true;
-  uint32_t idx = 0;
-  uint32_t row = 1;
+  uint64_t idx = 0;
+  uint64_t row = 1;
   char line[max_line_size];
   while (fgets(line, max_line_size, input))
   {
+    if (idx >= max_arr_size)
+    {
+      printf("Error: Maximum array size exceeded - file has >%lu lines\n", max_arr_size);
+      return idx;
+    }
     SensorData parsed = from_csv_line(line, &ok);
     if (!ok)
     {
-      printf("Error: wrong format in row %u of file\n", row);
+      printf("Error: wrong format in row %lu of file\n", row);
     }
     else
     {
@@ -62,17 +95,17 @@ uint32_t from_csv(SensorData arr[], FILE *input, uint64_t max_line_size)
 }
 
 // Add element to array
-void append_data(SensorData arr[], uint32_t *arr_len, SensorData data)
+void append_data(SensorData arr[], uint64_t *arr_len, SensorData data)
 {
   arr[*arr_len] = data;
   (*arr_len)++;
 }
 
 // Remove element at index from array
-SensorData pop_data(SensorData arr[], uint32_t *arr_len, uint32_t idx)
+SensorData pop_data(SensorData arr[], uint64_t *arr_len, uint64_t idx)
 {
   SensorData popped = arr[idx];
-  for (uint32_t i = idx; i < *arr_len - 1; i++)
+  for (uint64_t i = idx; i < *arr_len - 1; i++)
   {
     arr[i] = arr[i + 1];
   }
@@ -81,11 +114,11 @@ SensorData pop_data(SensorData arr[], uint32_t *arr_len, uint32_t idx)
 }
 
 // Sorts array by date
-void sort_arr(SensorData arr[], uint32_t arr_len)
+void sort_arr(SensorData arr[], uint64_t arr_len)
 {
-  for (uint32_t j = 0; j < arr_len - 1; j++)
+  for (uint64_t j = 0; j < arr_len - 1; j++)
   {
-    for (uint32_t i = 0; i < arr_len - 1; i++)
+    for (uint64_t i = 0; i < arr_len - 1; i++)
     {
       bool swap = false;
       if (arr[i].year > arr[i + 1].year)
@@ -135,7 +168,7 @@ void print_sensor_data(SensorData data)
   printf("%u-%02u-%02u %02u-%02u %d\n", data.year, data.month, data.day, data.hour, data.minute, data.temperature);
 }
 
-void print_sensor_data_arr(SensorData arr[], uint32_t arr_len)
+void print_sensor_data_arr(SensorData arr[], uint64_t arr_len)
 {
   for (int i = 0; i < arr_len; i++)
   {

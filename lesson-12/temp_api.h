@@ -2,16 +2,7 @@
 #define temp_api
 
 #include <stdint.h>
-
-typedef struct
-{
-  uint16_t year;
-  uint8_t month;
-  uint8_t day;
-  uint8_t hour;
-  uint8_t minute;
-  int8_t temperature;
-} SensorData;
+#include <sensordata.h>
 
 float avg_t_month(uint8_t month, SensorData data[], uint32_t data_len);
 int8_t min_t_month(uint8_t month, SensorData data[], uint32_t data_len);

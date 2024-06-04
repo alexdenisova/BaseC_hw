@@ -71,27 +71,33 @@ int main(int argc, char *argv[])
   get_args(argc, argv, &input, &month);
 
   SensorData data_arr[MAX_ROWS];
-  uint32_t idx = from_csv(data_arr, input, MAX_LINE_LENGTH);
+  uint64_t idx = from_csv(data_arr, MAX_ROWS, input, MAX_LINE_LENGTH);
 
-  if (month != 0)
+  if (idx > 0)
   {
-    printf("\nStatistics for month:\n");
-    printf("Average temperature: %.2f\n", avg_t_month(month, data_arr, idx));
-    printf("Minimum temperature: %d\n", min_t_month(month, data_arr, idx));
-    printf("Maximum temperature: %d\n", max_t_month(month, data_arr, idx));
-  }
-  else
-  {
-    SensorData popped = pop_data(data_arr, &idx, idx - 2);
-    printf("\nPopped data: ");
-    print_sensor_data(popped);
+    if (month != 0)
+    {
+      printf("\nStatistics for month:\n");
+      printf("Average temperature: %.2f\n", avg_t_month(month, data_arr, idx));
+      printf("Minimum temperature: %d\n", min_t_month(month, data_arr, idx));
+      printf("Maximum temperature: %d\n", max_t_month(month, data_arr, idx));
+    }
+    else
+    {
+      if (idx >= 2)
+      {
+        SensorData popped = pop_data(data_arr, &idx, idx - 2);
+        printf("\nPopped data: ");
+        print_sensor_data(popped);
+      }
 
-    SensorData to_add = {2000, 8, 16, 1, 1, 20};
-    append_data(data_arr, &idx, to_add);
+      SensorData to_add = {2000, 8, 16, 1, 1, 20};
+      append_data(data_arr, &idx, to_add);
 
-    sort_arr(data_arr, idx);
-    printf("\nSorted array:\n");
-    print_sensor_data_arr(data_arr, idx);
+      sort_arr(data_arr, idx);
+      printf("\nSorted array:\n");
+      print_sensor_data_arr(data_arr, idx);
+    }
   }
   return 0;
 }
